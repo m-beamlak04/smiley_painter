@@ -2,6 +2,8 @@
 // Student: Beamlak Mulugeta
 // Date: September 30, 2026
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 void main() => runApp(const SmileyApp());
@@ -14,10 +16,7 @@ class SmileyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Smiley Painter Lab',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: Colors.indigo,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
       home: const DrawingPlayground(),
     );
   }
@@ -87,6 +86,57 @@ class SmileyPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
     canvas.drawCircle(center, radius, border);
+
+    // Eyes
+    final eyePaint = Paint()..color = Colors.black87;
+    final eyeY = center.dy - radius * 0.18;
+    final eyeDx = radius * 0.35;
+
+    canvas.drawCircle(
+      Offset(center.dx - eyeDx, eyeY),
+      12,
+      eyePaint,
+    );
+
+    canvas.drawCircle(
+      Offset(center.dx + eyeDx, eyeY),
+      12,
+      eyePaint,
+    );
+
+    // Mouth
+    final mouthPaint = Paint()
+      ..color = Colors.black87
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+
+    final mouthRect = Rect.fromCenter(
+      center: Offset(center.dx, center.dy + radius * 0.15),
+      width: radius * 1.0,
+      height: radius * (0.4 + mood * 0.5),
+    );
+
+    if (mood >= 0.5) {
+      canvas.drawArc(
+        mouthRect,
+        0.15 * pi,
+        0.70 * pi,
+        false,
+        mouthPaint,
+      );
+    } else {
+      final frownRect = mouthRect.translate(0, radius * 0.25);
+
+      canvas.drawArc(
+        frownRect,
+        1.15 * pi,
+        0.70 * pi,
+        false,
+        mouthPaint,
+      );
+    }
+
   }
 
   @override
