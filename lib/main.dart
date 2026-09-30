@@ -44,9 +44,41 @@ class _DrawingPlaygroundState extends State<DrawingPlayground> {
         children: [
           Expanded(
             child: Center(
-              child: CustomPaint(
-                size: const Size(300, 300),
-                painter: SmileyPainter(mood: mood, faceType: selectedFace),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    final currentIndex = FaceType.values.indexOf(selectedFace);
+                    selectedFace = FaceType
+                        .values[(currentIndex + 1) % FaceType.values.length];
+                  });
+
+                  ScaffoldMessenger.of(context)
+                    ..clearSnackBars()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text('Face changed to ${selectedFace.name}'),
+                      ),
+                    );
+                },
+                onLongPress: () {
+                  setState(() {
+                    mood = Random().nextDouble();
+                  });
+
+                  ScaffoldMessenger.of(context)
+                    ..clearSnackBars()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Mood randomized to ${mood.toStringAsFixed(2)}',
+                        ),
+                      ),
+                    );
+                },
+                child: CustomPaint(
+                  size: const Size(300, 300),
+                  painter: SmileyPainter(mood: mood, faceType: selectedFace),
+                ),
               ),
             ),
           ),
@@ -144,17 +176,9 @@ class SmileyPainter extends CustomPainter {
       // Classic and surprised: round eyes
       double eyeSize = faceType == FaceType.surprised ? 18 : 12;
 
-      canvas.drawCircle(
-        Offset(center.dx - eyeDx, eyeY),
-        eyeSize,
-        eyePaint,
-      );
+      canvas.drawCircle(Offset(center.dx - eyeDx, eyeY), eyeSize, eyePaint);
 
-      canvas.drawCircle(
-        Offset(center.dx + eyeDx, eyeY),
-        eyeSize,
-        eyePaint,
-      );
+      canvas.drawCircle(Offset(center.dx + eyeDx, eyeY), eyeSize, eyePaint);
     }
 
     // Mouth
@@ -178,23 +202,11 @@ class SmileyPainter extends CustomPainter {
         Paint()..color = Colors.black87,
       );
     } else if (mood >= 0.5) {
-      canvas.drawArc(
-        mouthRect,
-        0.15 * pi,
-        0.70 * pi,
-        false,
-        mouthPaint,
-      );
+      canvas.drawArc(mouthRect, 0.15 * pi, 0.70 * pi, false, mouthPaint);
     } else {
       final frownRect = mouthRect.translate(0, radius * 0.25);
 
-      canvas.drawArc(
-        frownRect,
-        1.15 * pi,
-        0.70 * pi,
-        false,
-        mouthPaint,
-      );
+      canvas.drawArc(frownRect, 1.15 * pi, 0.70 * pi, false, mouthPaint);
     }
   }
 
