@@ -22,6 +22,8 @@ class SmileyApp extends StatelessWidget {
   }
 }
 
+enum FaceType { classic, sleepy, surprised }
+
 class DrawingPlayground extends StatefulWidget {
   const DrawingPlayground({super.key});
 
@@ -32,6 +34,7 @@ class DrawingPlayground extends StatefulWidget {
 class _DrawingPlaygroundState extends State<DrawingPlayground> {
   // Drawing "state" — changing these + setState() triggers shouldRepaint
   double mood = 0.8; // 0.0 sad → 1.0 happy
+  FaceType selectedFace = FaceType.classic;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +46,7 @@ class _DrawingPlaygroundState extends State<DrawingPlayground> {
             child: Center(
               child: CustomPaint(
                 size: const Size(300, 300),
-                painter: SmileyPainter(mood: mood),
+                painter: SmileyPainter(mood: mood, faceType: selectedFace),
               ),
             ),
           ),
@@ -56,6 +59,22 @@ class _DrawingPlaygroundState extends State<DrawingPlayground> {
                   value: mood,
                   onChanged: (double v) => setState(() => mood = v),
                 ),
+                DropdownButton<FaceType>(
+                  value: selectedFace,
+                  items: FaceType.values.map((face) {
+                    return DropdownMenuItem(
+                      value: face,
+                      child: Text(face.name),
+                    );
+                  }).toList(),
+                  onChanged: (FaceType? value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedFace = value;
+                      });
+                    }
+                  },
+                ),
               ],
             ),
           ),
@@ -66,8 +85,10 @@ class _DrawingPlaygroundState extends State<DrawingPlayground> {
 }
 
 class SmileyPainter extends CustomPainter {
-  SmileyPainter({required this.mood});
+  SmileyPainter({required this.mood, required this.faceType});
+
   final double mood;
+  final FaceType faceType;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -98,21 +119,43 @@ class SmileyPainter extends CustomPainter {
     canvas.drawCircle(center, radius, border);
 
     // Eyes
-    final eyePaint = Paint()..color = Colors.black87;
+    final eyePaint = Paint()
+      ..color = Colors.black87
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+
     final eyeY = center.dy - radius * 0.18;
     final eyeDx = radius * 0.35;
 
-    canvas.drawCircle(
-      Offset(center.dx - eyeDx, eyeY),
-      12,
-      eyePaint,
-    );
+    if (faceType == FaceType.sleepy) {
+      // Sleepy: closed eyes
+      canvas.drawLine(
+        Offset(center.dx - eyeDx - 10, eyeY),
+        Offset(center.dx - eyeDx + 10, eyeY),
+        eyePaint,
+      );
 
-    canvas.drawCircle(
-      Offset(center.dx + eyeDx, eyeY),
-      12,
-      eyePaint,
-    );
+      canvas.drawLine(
+        Offset(center.dx + eyeDx - 10, eyeY),
+        Offset(center.dx + eyeDx + 10, eyeY),
+        eyePaint,
+      );
+    } else {
+      // Classic and surprised: round eyes
+      double eyeSize = faceType == FaceType.surprised ? 18 : 12;
+
+      canvas.drawCircle(
+        Offset(center.dx - eyeDx, eyeY),
+        eyeSize,
+        eyePaint,
+      );
+
+      canvas.drawCircle(
+        Offset(center.dx + eyeDx, eyeY),
+        eyeSize,
+        eyePaint,
+      );
+    }
 
     // Mouth
     final mouthPaint = Paint()
@@ -127,7 +170,14 @@ class SmileyPainter extends CustomPainter {
       height: radius * (0.4 + mood * 0.5),
     );
 
-    if (mood >= 0.5) {
+    if (faceType == FaceType.surprised) {
+      // Surprised: open round mouth
+      canvas.drawCircle(
+        Offset(center.dx, center.dy + radius * 0.30),
+        radius * 0.18,
+        Paint()..color = Colors.black87,
+      );
+    } else if (mood >= 0.5) {
       canvas.drawArc(
         mouthRect,
         0.15 * pi,
@@ -146,11 +196,10 @@ class SmileyPainter extends CustomPainter {
         mouthPaint,
       );
     }
-
   }
 
   @override
   bool shouldRepaint(covariant SmileyPainter oldDelegate) {
-    return oldDelegate.mood != mood;
+    return oldDelegate.mood != mood || oldDelegate.faceType != faceType;
   }
 }
