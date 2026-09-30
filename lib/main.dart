@@ -75,8 +75,18 @@ class SmileyPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.shortestSide * 0.4;
 
+    Color faceColor;
+
+    if (mood < 0.35) {
+      faceColor = Colors.lightBlue;
+    } else if (mood <= 0.7) {
+      faceColor = Colors.yellow.shade600;
+    } else {
+      faceColor = Colors.orange;
+    }
+
     final facePaint = Paint()
-      ..color = Colors.yellow.shade600
+      ..color = faceColor
       ..style = PaintingStyle.fill;
 
     canvas.drawCircle(center, radius, facePaint);
